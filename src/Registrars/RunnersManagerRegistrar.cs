@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Soenneker.GitHub.Repositories.Releases.Registrars;
 using Soenneker.Managers.HashChecking.Registrars;
 using Soenneker.Managers.HashSaving.Registrars;
 using Soenneker.Managers.NuGetPackage.Registrars;
@@ -19,7 +20,8 @@ public static class RunnersManagerRegistrar
     {
         services.AddHashCheckingManagerAsSingleton()
             .AddHashSavingManagerAsSingleton()
-            .AddNuGetPackageManagerAsSingleton();
+            .AddNuGetPackageManagerAsSingleton()
+            .AddGitHubRepositoriesReleasesUtilAsSingleton();
 
         services.TryAddSingleton<IRunnersManager, RunnersManager>();
 
@@ -33,7 +35,8 @@ public static class RunnersManagerRegistrar
     {
         services.AddHashCheckingManagerAsScoped()
             .AddHashSavingManagerAsScoped()
-            .AddNuGetPackageManagerAsScoped();
+            .AddNuGetPackageManagerAsScoped()
+            .AddGitHubRepositoriesReleasesUtilAsScoped();
 
         services.TryAddScoped<IRunnersManager, RunnersManager>();
 
