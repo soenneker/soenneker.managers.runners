@@ -61,7 +61,7 @@ public class RunnersManager : IRunnersManager
         string githubToken = EnvironmentUtil.GetVariableStrict("GH_TOKEN");
 
         // 4) Build, pack, and push if needed
-        await _packageManager.BuildPackAndPushExe(gitDirectory, $"{libraryName}.csproj", targetExePath, filePath, version, token, cancellationToken).NoSync();
+        await _packageManager.BuildPackAndPushExe(gitDirectory, libraryName, targetExePath, filePath, version, token, cancellationToken).NoSync();
 
         // 5) Save the new hash back into the Git repo
         await _hashSaver.SaveHashToGitRepo(gitDirectory, newHash!, fileName, _hashFilename, name, email, username, githubToken, cancellationToken).NoSync();
