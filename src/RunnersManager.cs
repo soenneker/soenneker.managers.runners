@@ -56,12 +56,12 @@ public class RunnersManager : IRunnersManager
         string name = EnvironmentUtil.GetVariableStrict("NAME");
         string email = EnvironmentUtil.GetVariableStrict("EMAIL");
         string username = EnvironmentUtil.GetVariableStrict("USERNAME");
-        string token = EnvironmentUtil.GetVariableStrict("TOKEN");
+        string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET_TOKEN");
         string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
         string githubToken = EnvironmentUtil.GetVariableStrict("GH_TOKEN");
 
         // 4) Build, pack, and push if needed
-        await _packageManager.BuildPackAndPushExe(gitDirectory, libraryName, targetExePath, filePath, version, token, cancellationToken).NoSync();
+        await _packageManager.BuildPackAndPushExe(gitDirectory, libraryName, targetExePath, filePath, version, nuGetToken, cancellationToken).NoSync();
 
         // 5) Save the new hash back into the Git repo
         await _hashSaver.SaveHashToGitRepo(gitDirectory, newHash!, fileName, _hashFilename, name, email, username, githubToken, cancellationToken).NoSync();
