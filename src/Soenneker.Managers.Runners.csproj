@@ -42,9 +42,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Soenneker.Config.Realtime" Version="3.0.28" />
+        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="3.0.30" />
         <PackageReference Include="Soenneker.Managers.HashChecking" Version="3.0.4" />
         <PackageReference Include="Soenneker.Managers.HashSaving" Version="3.0.1" />
-        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="3.0.2" />
+        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="3.0.3" />
         <PackageReference Include="Soenneker.Utils.Environment" Version="3.0.396" />
     </ItemGroup>
 </Project>
