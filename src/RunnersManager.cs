@@ -4,7 +4,6 @@ using Soenneker.Managers.Runners.Abstract;
 using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
-using Octokit;
 using Soenneker.Extensions.String;
 using Soenneker.Managers.HashChecking.Abstract;
 using Soenneker.Managers.NuGetPackage.Abstract;
