@@ -42,7 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="3.0.297" />
+        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="3.0.298" />
         <PackageReference Include="Soenneker.Managers.HashChecking" Version="3.0.329" />
         <PackageReference Include="Soenneker.Managers.HashSaving" Version="3.0.467" />
         <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="3.0.483" />
