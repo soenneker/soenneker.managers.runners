@@ -1,4 +1,4 @@
-# Contributing to Soenneker.Managers.Runners
+﻿# Contributing to Soenneker.Managers.Runners
 
 We're excited that you're interested in contributing!
 
