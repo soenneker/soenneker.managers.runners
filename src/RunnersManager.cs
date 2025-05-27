@@ -11,7 +11,6 @@ using Soenneker.Managers.HashSaving.Abstract;
 using Soenneker.Utils.Environment;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.GitHub.Repositories.Releases.Abstract;
-using Soenneker.GitHub.Client.Abstract;
 using Soenneker.Utils.Dotnet.NuGet.Abstract;
 
 namespace Soenneker.Managers.Runners;
@@ -25,7 +24,6 @@ public class RunnersManager : IRunnersManager
     private readonly INuGetPackageManager _packageManager;
     private readonly IHashSavingManager _hashSaver;
     private readonly IGitHubRepositoriesReleasesUtil _releasesUtil;
-    private readonly IGitHubClientUtil _gitHubClientUtil;
     private readonly IDotnetNuGetUtil _dotnetNuGetUtil;
 
     private const string _hashFilename = "hash.txt";
@@ -36,7 +34,7 @@ public class RunnersManager : IRunnersManager
         IHashCheckingManager hashChecker,
         INuGetPackageManager packageManager,
         IHashSavingManager hashSaver,
-        IGitHubRepositoriesReleasesUtil releasesUtil, IGitHubClientUtil gitHubClientUtil, IDotnetNuGetUtil dotnetNuGetUtil)
+        IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil)
     {
         _logger = logger;
         _gitUtil = gitUtil;
@@ -44,7 +42,6 @@ public class RunnersManager : IRunnersManager
         _packageManager = packageManager;
         _hashSaver = hashSaver;
         _releasesUtil = releasesUtil;
-        _gitHubClientUtil = gitHubClientUtil;
         _dotnetNuGetUtil = dotnetNuGetUtil;
     }
 
@@ -69,7 +66,7 @@ public class RunnersManager : IRunnersManager
         string username = EnvironmentUtil.GetVariableStrict("USERNAME");
         string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET_TOKEN");
         string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
-        string gitHubToken = EnvironmentUtil.GetVariableStrict("GH_TOKEN");
+        string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
 
         // 4) Build, pack, and push if needed
         await _packageManager.BuildPackAndPushExe(gitDirectory, libraryName, targetExePath, filePath, version, nuGetToken, cancellationToken).NoSync();
@@ -77,16 +74,13 @@ public class RunnersManager : IRunnersManager
         // 5) Save the new hash back into the Git repo
         await _hashSaver.SaveHashToGitRepo(gitDirectory, newHash!, fileName, _hashFilename, name, email, username, gitHubToken, cancellationToken).NoSync();
 
-        await CreateGitHubRelease(filePath, libraryName, version, username, gitHubToken, cancellationToken).NoSync();
+        await CreateGitHubRelease(filePath, libraryName, version, username, cancellationToken).NoSync();
 
         await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
     }
 
-    private async ValueTask CreateGitHubRelease(string filePath, string libraryName, string version, string username, string gitHubToken, CancellationToken cancellationToken)
+    private async ValueTask CreateGitHubRelease(string filePath, string libraryName, string version, string username, CancellationToken cancellationToken)
     {
-        // It's important that this gets called before any GitHub calls, due to setting of the token
-        _ = await _gitHubClientUtil.Get(gitHubToken, cancellationToken);
-
         await _releasesUtil.Create(username, libraryName.ToLowerInvariantFast(),
             version, version, "Automated release update", filePath, false, false, cancellationToken).NoSync();
     }
