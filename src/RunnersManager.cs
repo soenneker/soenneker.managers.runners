@@ -16,7 +16,7 @@ using Soenneker.Utils.Dotnet.NuGet.Abstract;
 namespace Soenneker.Managers.Runners;
 
 /// <inheritdoc cref="IRunnersManager"/>
-public class RunnersManager : IRunnersManager
+public sealed class RunnersManager : IRunnersManager
 {
     private readonly ILogger<RunnersManager> _logger;
     private readonly IGitUtil _gitUtil;
@@ -28,13 +28,8 @@ public class RunnersManager : IRunnersManager
 
     private const string _hashFilename = "hash.txt";
 
-    public RunnersManager(
-        ILogger<RunnersManager> logger,
-        IGitUtil gitUtil,
-        IHashCheckingManager hashChecker,
-        INuGetPackageManager packageManager,
-        IHashSavingManager hashSaver,
-        IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil)
+    public RunnersManager(ILogger<RunnersManager> logger, IGitUtil gitUtil, IHashCheckingManager hashChecker, INuGetPackageManager packageManager,
+        IHashSavingManager hashSaver, IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil)
     {
         _logger = logger;
         _gitUtil = gitUtil;
@@ -45,7 +40,8 @@ public class RunnersManager : IRunnersManager
         _dotnetNuGetUtil = dotnetNuGetUtil;
     }
 
-    public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, CancellationToken cancellationToken = default)
+    public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Pushing if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
 
@@ -64,7 +60,7 @@ public class RunnersManager : IRunnersManager
         string name = EnvironmentUtil.GetVariableStrict("NAME");
         string email = EnvironmentUtil.GetVariableStrict("EMAIL");
         string username = EnvironmentUtil.GetVariableStrict("USERNAME");
-        string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET_TOKEN");
+        string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
         string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
         string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
 
@@ -79,16 +75,19 @@ public class RunnersManager : IRunnersManager
         await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
     }
 
-    private async ValueTask CreateGitHubRelease(string filePath, string libraryName, string version, string username, CancellationToken cancellationToken)
+    private ValueTask CreateGitHubRelease(string filePath, string libraryName, string version, string username, CancellationToken cancellationToken)
     {
-        await _releasesUtil.Create(username, libraryName.ToLowerInvariantFast(),
-            version, version, "Automated release update", filePath, false, false, cancellationToken).NoSync();
+        return _releasesUtil.Create(username, libraryName.ToLowerInvariantFast(), version, version, "Automated release update", filePath, false, false,
+            cancellationToken);
     }
 
-    private async ValueTask PublishToGitHubPackages(string gitDirectory, string libraryName, string version, string gitHubToken, CancellationToken cancellationToken)
+    private async ValueTask PublishToGitHubPackages(string gitDirectory, string libraryName, string version, string gitHubToken,
+        CancellationToken cancellationToken)
     {
         string nuGetPackagePath = Path.Combine(gitDirectory, $"{libraryName}.{version}.nupkg");
 
-        await _dotnetNuGetUtil.Push(nuGetPackagePath, source: "https://nuget.pkg.github.com/soenneker/index.json", apiKey: gitHubToken, cancellationToken: cancellationToken).NoSync();
+        await _dotnetNuGetUtil.Push(nuGetPackagePath, source: "https://nuget.pkg.github.com/soenneker/index.json", apiKey: gitHubToken,
+                                  cancellationToken: cancellationToken)
+                              .NoSync();
     }
 }
