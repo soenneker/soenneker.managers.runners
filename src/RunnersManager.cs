@@ -46,7 +46,7 @@ public sealed class RunnersManager : IRunnersManager
         _logger.LogInformation("Pushing if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
 
         // 1) Clone the Git repo
-        string gitDirectory = _gitUtil.CloneToTempDirectory(gitRepoUri);
+        string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken);
 
         // 2) Calculate target path
         string targetExePath = Path.Combine(gitDirectory, "src", "Resources", fileName);
