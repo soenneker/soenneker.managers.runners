@@ -9,4 +9,6 @@ namespace Soenneker.Managers.Runners.Abstract;
 public interface IRunnersManager
 {
     ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, CancellationToken cancellationToken = default);
+
+    ValueTask PushIfChangesNeededForDirectory(string directory, string sourceDir, string libraryName, string gitRepoUri, CancellationToken cancellationToken = default);
 }

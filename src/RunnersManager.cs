@@ -46,7 +46,7 @@ public sealed class RunnersManager : IRunnersManager
         _logger.LogInformation("Pushing if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
 
         // 1) Clone the Git repo
-        string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken);
+        string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken).NoSync();
 
         // 2) Calculate target path
         string targetExePath = Path.Combine(gitDirectory, "src", "Resources", fileName);
@@ -65,12 +65,45 @@ public sealed class RunnersManager : IRunnersManager
         string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
 
         // 4) Build, pack, and push if needed
-        await _packageManager.BuildPackAndPushExe(gitDirectory, libraryName, targetExePath, filePath, version, nuGetToken, cancellationToken).NoSync();
+        await _packageManager.BuildPackAndPushFile(gitDirectory, libraryName, targetExePath, filePath, version, nuGetToken, cancellationToken).NoSync();
 
         // 5) Save the new hash back into the Git repo
-        await _hashSaver.SaveHashToGitRepo(gitDirectory, newHash!, fileName, _hashFilename, name, email, username, gitHubToken, cancellationToken).NoSync();
+        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, newHash!, fileName, _hashFilename, name, email, username, gitHubToken, cancellationToken)
+                        .NoSync();
 
         await CreateGitHubRelease(filePath, libraryName, version, username, cancellationToken).NoSync();
+
+        await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
+    }
+
+    public async ValueTask PushIfChangesNeededForDirectory(string directory, string sourceDir, string libraryName, string gitRepoUri,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Pushing if changes are needed for {directory} in {LibraryName} from {GitRepoUri}...", directory, libraryName, gitRepoUri);
+
+        string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken).NoSync();
+
+        string targetDir = Path.Combine(gitDirectory, "src", "Resources", directory);
+
+        (bool needToUpdate, string? newHash) =
+            await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, targetDir, _hashFilename, cancellationToken).NoSync();
+
+        if (!needToUpdate)
+            return;
+
+        string name = EnvironmentUtil.GetVariableStrict("NAME");
+        string email = EnvironmentUtil.GetVariableStrict("EMAIL");
+        string username = EnvironmentUtil.GetVariableStrict("USERNAME");
+        string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
+        string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
+        string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
+
+        // 4) Build, pack, and push if needed
+        await _packageManager.BuildPackAndPushDirectory(gitDirectory, libraryName, targetDir, sourceDir, version, nuGetToken, cancellationToken).NoSync();
+
+        // 5) Save the new hash back into the Git repo
+        await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash!, targetDir, _hashFilename, name, email, username, gitHubToken, cancellationToken)
+                        .NoSync();
 
         await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
     }
