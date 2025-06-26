@@ -12,6 +12,7 @@ using Soenneker.Utils.Environment;
 using Soenneker.Extensions.ValueTask;
 using Soenneker.GitHub.Repositories.Releases.Abstract;
 using Soenneker.Utils.Dotnet.NuGet.Abstract;
+using Soenneker.Utils.Directory.Abstract;
 
 namespace Soenneker.Managers.Runners;
 
@@ -25,11 +26,12 @@ public sealed class RunnersManager : IRunnersManager
     private readonly IHashSavingManager _hashSaver;
     private readonly IGitHubRepositoriesReleasesUtil _releasesUtil;
     private readonly IDotnetNuGetUtil _dotnetNuGetUtil;
+    private readonly IDirectoryUtil _directoryUtil;
 
     private const string _hashFilename = "hash.txt";
 
     public RunnersManager(ILogger<RunnersManager> logger, IGitUtil gitUtil, IHashCheckingManager hashChecker, INuGetPackageManager packageManager,
-        IHashSavingManager hashSaver, IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil)
+        IHashSavingManager hashSaver, IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil, IDirectoryUtil directoryUtil)
     {
         _logger = logger;
         _gitUtil = gitUtil;
@@ -38,6 +40,7 @@ public sealed class RunnersManager : IRunnersManager
         _hashSaver = hashSaver;
         _releasesUtil = releasesUtil;
         _dotnetNuGetUtil = dotnetNuGetUtil;
+        _directoryUtil = directoryUtil;
     }
 
     public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
@@ -84,6 +87,8 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken).NoSync();
 
         string targetDir = Path.Combine(gitDirectory, "src", "Resources", resourcesRelativeDir);
+
+        _directoryUtil.CreateIfDoesNotExist(targetDir);
 
         (bool needToUpdate, string? newHash) =
             await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, targetDir, _hashFilename, cancellationToken).NoSync();
