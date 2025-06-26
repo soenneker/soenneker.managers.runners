@@ -19,11 +19,10 @@ public static class RunnersManagerRegistrar
     public static IServiceCollection AddRunnersManagerAsSingleton(this IServiceCollection services)
     {
         services.AddHashCheckingManagerAsSingleton()
-            .AddHashSavingManagerAsSingleton()
-            .AddNuGetPackageManagerAsSingleton()
-            .AddGitHubRepositoriesReleasesUtilAsSingleton();
-
-        services.TryAddSingleton<IRunnersManager, RunnersManager>();
+                .AddHashSavingManagerAsSingleton()
+                .AddNuGetPackageManagerAsSingleton()
+                .AddGitHubRepositoriesReleasesUtilAsSingleton()
+                .TryAddSingleton<IRunnersManager, RunnersManager>();
 
         return services;
     }
@@ -34,11 +33,10 @@ public static class RunnersManagerRegistrar
     public static IServiceCollection AddRunnersManagerAsScoped(this IServiceCollection services)
     {
         services.AddHashCheckingManagerAsScoped()
-            .AddHashSavingManagerAsScoped()
-            .AddNuGetPackageManagerAsScoped()
-            .AddGitHubRepositoriesReleasesUtilAsScoped();
-
-        services.TryAddScoped<IRunnersManager, RunnersManager>();
+                .AddHashSavingManagerAsScoped()
+                .AddNuGetPackageManagerAsScoped()
+                .AddGitHubRepositoriesReleasesUtilAsScoped()
+                .TryAddScoped<IRunnersManager, RunnersManager>();
 
         return services;
     }

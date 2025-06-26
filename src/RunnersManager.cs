@@ -76,14 +76,14 @@ public sealed class RunnersManager : IRunnersManager
         await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
     }
 
-    public async ValueTask PushIfChangesNeededForDirectory(string directory, string sourceDir, string libraryName, string gitRepoUri,
+    public async ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Pushing if changes are needed for {directory} in {LibraryName} from {GitRepoUri}...", directory, libraryName, gitRepoUri);
+        _logger.LogInformation("Pushing if changes are needed for {resourcesRelativeDir} in {LibraryName} from {GitRepoUri}...", resourcesRelativeDir, libraryName, gitRepoUri);
 
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken).NoSync();
 
-        string targetDir = Path.Combine(gitDirectory, "src", "Resources", directory);
+        string targetDir = Path.Combine(gitDirectory, "src", "Resources", resourcesRelativeDir);
 
         (bool needToUpdate, string? newHash) =
             await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, targetDir, _hashFilename, cancellationToken).NoSync();
