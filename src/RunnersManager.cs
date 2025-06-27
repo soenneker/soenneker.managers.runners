@@ -91,7 +91,7 @@ public sealed class RunnersManager : IRunnersManager
         _directoryUtil.CreateIfDoesNotExist(targetDir);
 
         (bool needToUpdate, string? newHash) =
-            await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, targetDir, _hashFilename, cancellationToken).NoSync();
+            await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, sourceDir, _hashFilename, cancellationToken).NoSync();
 
         if (!needToUpdate)
             return;
