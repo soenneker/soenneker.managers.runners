@@ -88,7 +88,7 @@ public sealed class RunnersManager : IRunnersManager
         _logger.LogInformation("Pushing if changes are needed for {resourcesRelativeDir} in {LibraryName} from {GitRepoUri}...", resourcesRelativeDir,
             libraryName, gitRepoUri);
 
-        string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken).NoSync();
+        string gitDirectory = await _libGit2SharpUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken).NoSync();
 
         string targetDir = Path.Combine(gitDirectory, "src", "Resources", resourcesRelativeDir);
 
