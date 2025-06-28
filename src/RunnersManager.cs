@@ -60,9 +60,9 @@ public sealed class RunnersManager : IRunnersManager
         if (!needToUpdate)
             return;
 
-        string name = EnvironmentUtil.GetVariableStrict("NAME");
-        string email = EnvironmentUtil.GetVariableStrict("EMAIL");
-        string username = EnvironmentUtil.GetVariableStrict("USERNAME");
+        string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
+        string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
+        string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
         string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
         string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
         string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
@@ -71,10 +71,10 @@ public sealed class RunnersManager : IRunnersManager
         await _packageManager.BuildPackAndPushFile(gitDirectory, libraryName, targetExePath, filePath, version, nuGetToken, cancellationToken).NoSync();
 
         // 5) Save the new hash back into the Git repo
-        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, newHash!, fileName, _hashFilename, name, email, username, gitHubToken, cancellationToken)
+        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, newHash!, fileName, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken, cancellationToken)
                         .NoSync();
 
-        await CreateGitHubRelease(filePath, libraryName, version, username, cancellationToken).NoSync();
+        await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken).NoSync();
 
         await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
     }
@@ -82,7 +82,8 @@ public sealed class RunnersManager : IRunnersManager
     public async ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Pushing if changes are needed for {resourcesRelativeDir} in {LibraryName} from {GitRepoUri}...", resourcesRelativeDir, libraryName, gitRepoUri);
+        _logger.LogInformation("Pushing if changes are needed for {resourcesRelativeDir} in {LibraryName} from {GitRepoUri}...", resourcesRelativeDir,
+            libraryName, gitRepoUri);
 
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken).NoSync();
 
@@ -96,9 +97,9 @@ public sealed class RunnersManager : IRunnersManager
         if (!needToUpdate)
             return;
 
-        string name = EnvironmentUtil.GetVariableStrict("NAME");
-        string email = EnvironmentUtil.GetVariableStrict("EMAIL");
-        string username = EnvironmentUtil.GetVariableStrict("USERNAME");
+        string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
+        string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
+        string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
         string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
         string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
         string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
@@ -107,8 +108,9 @@ public sealed class RunnersManager : IRunnersManager
         await _packageManager.BuildPackAndPushDirectory(gitDirectory, libraryName, targetDir, sourceDir, version, nuGetToken, cancellationToken).NoSync();
 
         // 5) Save the new hash back into the Git repo
-        await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash!, targetDir, _hashFilename, name, email, username, gitHubToken, cancellationToken)
-                        .NoSync();
+        await _hashSaver
+              .SaveHashToGitRepoAsDirectory(gitDirectory, newHash!, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken, cancellationToken)
+              .NoSync();
 
         await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken).NoSync();
     }
