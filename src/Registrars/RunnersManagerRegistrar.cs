@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Soenneker.Git.LibGit2Sharp.Registrars;
 using Soenneker.GitHub.Repositories.Releases.Registrars;
 using Soenneker.Managers.HashChecking.Registrars;
 using Soenneker.Managers.HashSaving.Registrars;
@@ -36,6 +37,7 @@ public static class RunnersManagerRegistrar
                 .AddHashSavingManagerAsScoped()
                 .AddNuGetPackageManagerAsScoped()
                 .AddGitHubRepositoriesReleasesUtilAsScoped()
+                .AddLibGit2SharpUtilAsScoped()
                 .TryAddScoped<IRunnersManager, RunnersManager>();
 
         return services;

@@ -13,6 +13,7 @@ using Soenneker.Extensions.ValueTask;
 using Soenneker.GitHub.Repositories.Releases.Abstract;
 using Soenneker.Utils.Dotnet.NuGet.Abstract;
 using Soenneker.Utils.Directory.Abstract;
+using Soenneker.Git.LibGit2Sharp.Abstract;
 
 namespace Soenneker.Managers.Runners;
 
@@ -27,11 +28,12 @@ public sealed class RunnersManager : IRunnersManager
     private readonly IGitHubRepositoriesReleasesUtil _releasesUtil;
     private readonly IDotnetNuGetUtil _dotnetNuGetUtil;
     private readonly IDirectoryUtil _directoryUtil;
+    private readonly ILibGit2SharpUtil _libGit2SharpUtil;
 
     private const string _hashFilename = "hash.txt";
 
     public RunnersManager(ILogger<RunnersManager> logger, IGitUtil gitUtil, IHashCheckingManager hashChecker, INuGetPackageManager packageManager,
-        IHashSavingManager hashSaver, IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil, IDirectoryUtil directoryUtil)
+        IHashSavingManager hashSaver, IGitHubRepositoriesReleasesUtil releasesUtil, IDotnetNuGetUtil dotnetNuGetUtil, IDirectoryUtil directoryUtil, ILibGit2SharpUtil libGit2SharpUtil)
     {
         _logger = logger;
         _gitUtil = gitUtil;
@@ -41,6 +43,7 @@ public sealed class RunnersManager : IRunnersManager
         _releasesUtil = releasesUtil;
         _dotnetNuGetUtil = dotnetNuGetUtil;
         _directoryUtil = directoryUtil;
+        _libGit2SharpUtil = libGit2SharpUtil;
     }
 
     public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
@@ -49,7 +52,7 @@ public sealed class RunnersManager : IRunnersManager
         _logger.LogInformation("Pushing if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
 
         // 1) Clone the Git repo
-        string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken).NoSync();
+        string gitDirectory = await _libGit2SharpUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken).NoSync();
 
         // 2) Calculate target path
         string targetExePath = Path.Combine(gitDirectory, "src", "Resources", fileName);
