@@ -43,7 +43,7 @@
 
     <ItemGroup>
         <PackageReference Include="Soenneker.Git.LibGit2Sharp" Version="3.0.1" />
-        <PackageReference Include="Soenneker.Git.Util" Version="3.0.2958" />
+        <PackageReference Include="Soenneker.Git.Util" Version="3.0.2959" />
         <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="3.0.506" />
         <PackageReference Include="Soenneker.Managers.HashChecking" Version="3.0.553" />
         <PackageReference Include="Soenneker.Managers.HashSaving" Version="3.0.810" PrivateAssets="analyzers;build" />
