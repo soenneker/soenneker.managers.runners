@@ -50,7 +50,8 @@ public sealed class RunnersManager : IRunnersManager
     public async ValueTask AddFileAtPathToRepoIfNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Adding file to repo if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
+        _logger.LogInformation("Adding file to repo if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName,
+            gitRepoUri);
 
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken).NoSync();
 
@@ -68,7 +69,7 @@ public sealed class RunnersManager : IRunnersManager
 
         await _fileUtil.Copy(filePath, targetFilePath, true, cancellationToken).NoSync();
 
-        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, newHash!, fileName, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken, cancellationToken)
+        await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash!, _hashFilename, gitName, gitEmail, gitHubToken, cancellationToken)
                         .NoSync();
     }
 
