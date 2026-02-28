@@ -129,7 +129,7 @@ public sealed class RunnersManager : IRunnersManager
 
         string targetDir = Path.Combine(gitDirectory, "src", "Resources", resourcesRelativeDir);
 
-        await _directoryUtil.CreateIfDoesNotExist(targetDir, cancellationToken: cancellationToken)
+        await _directoryUtil.Create(targetDir, cancellationToken: cancellationToken)
                             .NoSync();
 
         (bool needToUpdate, string? newHash) = await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, sourceDir, _hashFilename, cancellationToken)
