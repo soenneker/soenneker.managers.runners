@@ -56,7 +56,7 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken)
                                             .NoSync();
 
-        string targetFilePath = Path.Combine(gitDirectory, "src", "Resources", fileName);
+        string targetFilePath = Path.Combine(gitDirectory, "src", libraryName, "Resources", fileName);
 
         (bool needToUpdate, string? newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
                                                                  .NoSync();
@@ -84,7 +84,7 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken)
                                             .NoSync();
 
-        string targetFilePath = Path.Combine(gitDirectory, "src", "Resources", fileName);
+        string targetFilePath = Path.Combine(gitDirectory, "src", libraryName, "Resources", fileName);
 
         (bool needToUpdate, string? newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
                                                                  .NoSync();
@@ -127,7 +127,7 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken)
                                             .NoSync();
 
-        string targetDir = Path.Combine(gitDirectory, "src", "Resources", resourcesRelativeDir);
+        string targetDir = Path.Combine(gitDirectory, "src", libraryName, "Resources", resourcesRelativeDir);
 
         await _directoryUtil.Create(targetDir, cancellationToken: cancellationToken)
                             .NoSync();
