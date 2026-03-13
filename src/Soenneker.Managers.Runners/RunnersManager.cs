@@ -58,7 +58,7 @@ public sealed class RunnersManager : IRunnersManager
 
         string targetFilePath = Path.Combine(gitDirectory, "src", libraryName, "Resources", fileName);
 
-        (bool needToUpdate, string? newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
+        (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
                                                                  .NoSync();
 
         if (!needToUpdate)
@@ -86,7 +86,7 @@ public sealed class RunnersManager : IRunnersManager
 
         string targetFilePath = Path.Combine(gitDirectory, "src", libraryName, "Resources", fileName);
 
-        (bool needToUpdate, string? newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
+        (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
                                                                  .NoSync();
 
         if (ignoreHashing)
@@ -133,7 +133,7 @@ public sealed class RunnersManager : IRunnersManager
         await _directoryUtil.Create(targetDir, cancellationToken: cancellationToken)
                             .NoSync();
 
-        (bool needToUpdate, string? newHash) = await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, sourceDir, _hashFilename, cancellationToken)
+        (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, sourceDir, _hashFilename, cancellationToken)
                                                                  .NoSync();
 
         if (ignoreHashing)
