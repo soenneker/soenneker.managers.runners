@@ -72,7 +72,7 @@ public sealed class RunnersManager : IRunnersManager
         await _fileUtil.Copy(filePath, targetFilePath, true, cancellationToken)
                        .NoSync();
 
-        await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash!, _hashFilename, gitName, gitEmail, gitHubToken, cancellationToken)
+        await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken, cancellationToken)
                         .NoSync();
     }
 
@@ -108,7 +108,8 @@ public sealed class RunnersManager : IRunnersManager
         await _packageManager.BuildPackAndPushFile(gitDirectory, libraryName, targetFilePath, filePath, version, nuGetToken, cancellationToken)
                              .NoSync();
 
-        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, newHash!, fileName, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken, cancellationToken)
+        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, libraryName, newHash, fileName, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
+                            cancellationToken)
                         .NoSync();
 
         await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken)
