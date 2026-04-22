@@ -1,20 +1,19 @@
 using Soenneker.Managers.Runners.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Managers.Runners.Tests;
 
-[Collection("Collection")]
-public class RunnersManagerTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public class RunnersManagerTests : HostedUnitTest
 {
     private readonly IRunnersManager _util;
 
-    public RunnersManagerTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public RunnersManagerTests(Host host) : base(host)
     {
         _util = Resolve<IRunnersManager>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
