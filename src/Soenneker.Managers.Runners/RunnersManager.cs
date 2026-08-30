@@ -11,13 +11,13 @@ using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.Dotnet.NuGet.Abstract;
 using Soenneker.Utils.Environment;
 using Soenneker.Utils.File.Abstract;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Soenneker.Managers.Runners;
 
-/// <inheritdoc cref="IRunnersManager"/>
 public sealed class RunnersManager : IRunnersManager
 {
     private readonly ILogger<RunnersManager> _logger;
@@ -56,24 +56,33 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken)
                                             .NoSync();
 
-        string targetFilePath = Path.Combine(gitDirectory, "src", libraryName, "Resources", fileName);
+        try
+        {
+            string resourcesDirectory = GetPathWithin(gitDirectory, Path.Combine("src", libraryName, "Resources"), "Resources directory");
+            string targetFilePath = GetPathWithin(resourcesDirectory, fileName, "Target file");
+            await _directoryUtil.Create(resourcesDirectory, cancellationToken: cancellationToken).NoSync();
 
-        (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
-                                                                 .NoSync();
+            (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
+                                                                     .NoSync();
 
-        if (!needToUpdate)
-            return;
+            if (!needToUpdate)
+                return;
 
-        string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
-        string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
-        string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
-        string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
+            string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
+            string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
+            string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
 
-        await _fileUtil.Copy(filePath, targetFilePath, true, cancellationToken)
-                       .NoSync();
+            await _fileUtil.Copy(filePath, targetFilePath, true, cancellationToken)
+                           .NoSync();
 
-        await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken, cancellationToken)
-                        .NoSync();
+            await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken,
+                                cancellationToken)
+                            .NoSync();
+        }
+        finally
+        {
+            await _directoryUtil.DeleteIfExists(gitDirectory, CancellationToken.None).NoSync();
+        }
     }
 
     public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, bool ignoreHashing = false,
@@ -84,39 +93,47 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken)
                                             .NoSync();
 
-        string targetFilePath = Path.Combine(gitDirectory, "src", libraryName, "Resources", fileName);
-
-        (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
-                                                                 .NoSync();
-
-        if (ignoreHashing)
+        try
         {
-            _logger.LogWarning("Ignoring hash results, continuing...");
+            string resourcesDirectory = GetPathWithin(gitDirectory, Path.Combine("src", libraryName, "Resources"), "Resources directory");
+            string targetFilePath = GetPathWithin(resourcesDirectory, fileName, "Target file");
+
+            (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferences(gitDirectory, filePath, _hashFilename, cancellationToken)
+                                                                     .NoSync();
+
+            if (ignoreHashing)
+            {
+                _logger.LogWarning("Ignoring hash results, continuing...");
+            }
+            else if (!needToUpdate)
+            {
+                return;
+            }
+
+            string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
+            string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
+            string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
+            string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
+            string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
+            string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
+
+            await _packageManager.BuildPackAndPushFile(gitDirectory, libraryName, targetFilePath, filePath, version, nuGetToken, cancellationToken)
+                                 .NoSync();
+
+            await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, libraryName, newHash, fileName, _hashFilename, gitName, gitEmail, ghUsername,
+                                gitHubToken, cancellationToken)
+                            .NoSync();
+
+            await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken)
+                .NoSync();
+
+            await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
+                .NoSync();
         }
-        else if (!needToUpdate)
+        finally
         {
-            return;
+            await _directoryUtil.DeleteIfExists(gitDirectory, CancellationToken.None).NoSync();
         }
-
-        string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
-        string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
-        string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
-        string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
-        string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
-        string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
-
-        await _packageManager.BuildPackAndPushFile(gitDirectory, libraryName, targetFilePath, filePath, version, nuGetToken, cancellationToken)
-                             .NoSync();
-
-        await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, libraryName, newHash, fileName, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
-                            cancellationToken)
-                        .NoSync();
-
-        await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken)
-            .NoSync();
-
-        await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
-            .NoSync();
     }
 
     public async ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri,
@@ -128,41 +145,48 @@ public sealed class RunnersManager : IRunnersManager
         string gitDirectory = await _gitUtil.CloneToTempDirectory(gitRepoUri, cancellationToken: cancellationToken)
                                             .NoSync();
 
-        string targetDir = Path.Combine(gitDirectory, "src", libraryName, "Resources", resourcesRelativeDir);
+        try
+        {
+            string resourcesDirectory = GetPathWithin(gitDirectory, Path.Combine("src", libraryName, "Resources"), "Resources directory");
+            string targetDir = GetPathWithin(resourcesDirectory, resourcesRelativeDir, "Target directory");
 
-        await _directoryUtil.Create(targetDir, cancellationToken: cancellationToken)
+            await _directoryUtil.Create(targetDir, cancellationToken: cancellationToken)
+                                .NoSync();
+
+            (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, sourceDir, _hashFilename,
+                                                                         cancellationToken)
+                                                                     .NoSync();
+
+            if (ignoreHashing)
+            {
+                _logger.LogWarning("Ignoring hash results, continuing...");
+            }
+            else if (!needToUpdate)
+            {
+                return;
+            }
+
+            string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
+            string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
+            string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
+            string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
+            string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
+            string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
+
+            await _packageManager.BuildPackAndPushDirectory(gitDirectory, libraryName, targetDir, sourceDir, version, nuGetToken, cancellationToken)
+                                 .NoSync();
+
+            await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
+                                cancellationToken)
                             .NoSync();
 
-        (bool needToUpdate, string newHash) = await _hashChecker.CheckForHashDifferencesOfDirectory(gitDirectory, sourceDir, _hashFilename, cancellationToken)
-                                                                 .NoSync();
-
-        if (ignoreHashing)
-        {
-            _logger.LogWarning("Ignoring hash results, continuing...");
+            await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
+                .NoSync();
         }
-        else if (!needToUpdate)
+        finally
         {
-            return;
+            await _directoryUtil.DeleteIfExists(gitDirectory, CancellationToken.None).NoSync();
         }
-
-        string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
-        string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
-        string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
-        string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
-        string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
-        string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
-
-        // 4) Build, pack, and push if needed
-        await _packageManager.BuildPackAndPushDirectory(gitDirectory, libraryName, targetDir, sourceDir, version, nuGetToken, cancellationToken)
-                             .NoSync();
-
-        // 5) Save the new hash back into the Git repo
-        await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash!, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
-                            cancellationToken)
-                        .NoSync();
-
-        await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
-            .NoSync();
     }
 
     private ValueTask CreateGitHubRelease(string filePath, string libraryName, string version, string username, CancellationToken cancellationToken)
@@ -174,10 +198,22 @@ public sealed class RunnersManager : IRunnersManager
     private async ValueTask PublishToGitHubPackages(string gitDirectory, string libraryName, string version, string gitHubToken,
         CancellationToken cancellationToken)
     {
-        string nuGetPackagePath = Path.Combine(gitDirectory, $"{libraryName}.{version}.nupkg");
+        string nuGetPackagePath = GetPathWithin(gitDirectory, $"{libraryName}.{version}.nupkg", "NuGet package");
 
         await _dotnetNuGetUtil.Push(nuGetPackagePath, source: "https://nuget.pkg.github.com/soenneker/index.json", apiKey: gitHubToken,
                                   cancellationToken: cancellationToken)
                               .NoSync();
+    }
+
+    private static string GetPathWithin(string rootDirectory, string path, string description)
+    {
+        string root = Path.GetFullPath(rootDirectory);
+        string candidate = Path.GetFullPath(path, root);
+        string rootPrefix = Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar;
+
+        if (!candidate.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"{description} must be located within {root}.");
+
+        return candidate;
     }
 }
