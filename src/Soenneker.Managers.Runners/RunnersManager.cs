@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Managers.Runners;
 
+/// <inheritdoc cref="IRunnersManager" />
 public sealed class RunnersManager : IRunnersManager
 {
     private readonly ILogger<RunnersManager> _logger;
