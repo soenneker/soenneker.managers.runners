@@ -44,10 +44,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="4.0.1030" />
-        <PackageReference Include="Soenneker.Managers.HashChecking" Version="4.0.852" />
-        <PackageReference Include="Soenneker.Managers.HashSaving" Version="4.0.1312" PrivateAssets="analyzers;build" />
-        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="4.0.1314" />
-        <PackageReference Include="Soenneker.Utils.Environment" Version="4.0.747" />
+        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="4.0.1031" />
+        <PackageReference Include="Soenneker.Managers.HashChecking" Version="4.0.854" />
+        <PackageReference Include="Soenneker.Managers.HashSaving" Version="4.0.1314" PrivateAssets="analyzers;build" />
+        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="4.0.1315" />
+        <PackageReference Include="Soenneker.Utils.Environment" Version="4.0.748" />
     </ItemGroup>
 </Project>
