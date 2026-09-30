@@ -48,7 +48,7 @@ public sealed class RunnersManager : IRunnersManager
     }
 
     public async ValueTask AddFileAtPathToRepoIfNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
-        CancellationToken cancellationToken = default, string? upstreamVersion = null)
+        CancellationToken cancellationToken = default, string? updateDetails = null)
     {
         _logger.LogInformation("Adding file to repo if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName,
             gitRepoUri);
@@ -76,7 +76,7 @@ public sealed class RunnersManager : IRunnersManager
                            .NoSync();
 
             await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken,
-                                cancellationToken, upstreamVersion)
+                                cancellationToken, updateDetails)
                             .NoSync();
         }
         finally
@@ -86,7 +86,7 @@ public sealed class RunnersManager : IRunnersManager
     }
 
     public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, bool ignoreHashing = false,
-        CancellationToken cancellationToken = default, string? upstreamVersion = null)
+        CancellationToken cancellationToken = default, string? updateDetails = null)
     {
         _logger.LogInformation("Pushing if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
 
@@ -121,7 +121,7 @@ public sealed class RunnersManager : IRunnersManager
                                  .NoSync();
 
             await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, libraryName, newHash, fileName, _hashFilename, gitName, gitEmail, ghUsername,
-                                gitHubToken, cancellationToken, upstreamVersion)
+                                gitHubToken, cancellationToken, updateDetails)
                             .NoSync();
 
             await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken)
@@ -137,7 +137,7 @@ public sealed class RunnersManager : IRunnersManager
     }
 
     public async ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri,
-        bool ignoreHashing = false, CancellationToken cancellationToken = default, string? upstreamVersion = null)
+        bool ignoreHashing = false, CancellationToken cancellationToken = default, string? updateDetails = null)
     {
         _logger.LogInformation("Pushing if changes are needed for {resourcesRelativeDir} in {LibraryName} from {GitRepoUri}...", resourcesRelativeDir,
             libraryName, gitRepoUri);
@@ -177,7 +177,7 @@ public sealed class RunnersManager : IRunnersManager
                                  .NoSync();
 
             await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
-                                cancellationToken, upstreamVersion)
+                                cancellationToken, updateDetails)
                             .NoSync();
 
             await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
