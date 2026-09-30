@@ -16,9 +16,10 @@ public interface IRunnersManager
     /// <param name="libraryName">Name of the library to load.</param>
     /// <param name="gitRepoUri">Git Repo URI for the add file at path to repo if needed operation.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <param name="updateDetails">Upstream version, release asset, or other source identifier; defaults to detected metadata or a content fingerprint.</param>
     /// <returns>A task that completes when the file at path to repo if needed addition is complete.</returns>
     ValueTask AddFileAtPathToRepoIfNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default, string? updateDetails = null);
 
     /// <summary>
     /// Pushes if Changes Needed.
@@ -29,8 +30,9 @@ public interface IRunnersManager
     /// <param name="gitRepoUri">Git Repo URI for the push if changes needed operation.</param>
     /// <param name="ignoreHashing">Whether ignore hashing.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <param name="updateDetails">Upstream version, release asset, or other source identifier; defaults to detected metadata or a content fingerprint.</param>
     /// <returns>A task that completes when the push if changes needed operation is complete.</returns>
-    ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, bool ignoreHashing = false, CancellationToken cancellationToken = default);
+    ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, bool ignoreHashing = false, CancellationToken cancellationToken = default, string? updateDetails = null);
 
     /// <summary>
     /// Pushes if Changes Needed For Directory.
@@ -41,6 +43,7 @@ public interface IRunnersManager
     /// <param name="gitRepoUri">Git Repo URI for the push if changes needed for directory operation.</param>
     /// <param name="ignoreHashing">Whether ignore hashing.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <param name="updateDetails">Upstream version, release asset, or other source identifier; defaults to detected metadata or a content fingerprint.</param>
     /// <returns>A task that completes when the push if changes needed for directory operation is complete.</returns>
-    ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri, bool ignoreHashing = false, CancellationToken cancellationToken = default);
+    ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri, bool ignoreHashing = false, CancellationToken cancellationToken = default, string? updateDetails = null);
 }

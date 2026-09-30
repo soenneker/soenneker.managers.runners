@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 
 namespace Soenneker.Managers.Runners;
 
-/// <inheritdoc cref="IRunnersManager" />
 public sealed class RunnersManager : IRunnersManager
 {
     private readonly ILogger<RunnersManager> _logger;
@@ -49,7 +48,7 @@ public sealed class RunnersManager : IRunnersManager
     }
 
     public async ValueTask AddFileAtPathToRepoIfNeeded(string filePath, string fileName, string libraryName, string gitRepoUri,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, string? updateDetails = null)
     {
         _logger.LogInformation("Adding file to repo if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName,
             gitRepoUri);
@@ -77,7 +76,7 @@ public sealed class RunnersManager : IRunnersManager
                            .NoSync();
 
             await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken,
-                                cancellationToken)
+                                cancellationToken, GetCommitMessage(libraryName, fileName, filePath, newHash, updateDetails))
                             .NoSync();
         }
         finally
@@ -87,7 +86,7 @@ public sealed class RunnersManager : IRunnersManager
     }
 
     public async ValueTask PushIfChangesNeeded(string filePath, string fileName, string libraryName, string gitRepoUri, bool ignoreHashing = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, string? updateDetails = null)
     {
         _logger.LogInformation("Pushing if changes are needed for {FileName} in {LibraryName} from {GitRepoUri}...", fileName, libraryName, gitRepoUri);
 
@@ -122,7 +121,7 @@ public sealed class RunnersManager : IRunnersManager
                                  .NoSync();
 
             await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, libraryName, newHash, fileName, _hashFilename, gitName, gitEmail, ghUsername,
-                                gitHubToken, cancellationToken)
+                                gitHubToken, cancellationToken, GetCommitMessage(libraryName, fileName, filePath, newHash, updateDetails))
                             .NoSync();
 
             await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken)
@@ -138,7 +137,7 @@ public sealed class RunnersManager : IRunnersManager
     }
 
     public async ValueTask PushIfChangesNeededForDirectory(string resourcesRelativeDir, string sourceDir, string libraryName, string gitRepoUri,
-        bool ignoreHashing = false, CancellationToken cancellationToken = default)
+        bool ignoreHashing = false, CancellationToken cancellationToken = default, string? updateDetails = null)
     {
         _logger.LogInformation("Pushing if changes are needed for {resourcesRelativeDir} in {LibraryName} from {GitRepoUri}...", resourcesRelativeDir,
             libraryName, gitRepoUri);
@@ -178,7 +177,7 @@ public sealed class RunnersManager : IRunnersManager
                                  .NoSync();
 
             await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
-                                cancellationToken)
+                                cancellationToken, GetCommitMessage(libraryName, resourcesRelativeDir, sourceDir, newHash, updateDetails))
                             .NoSync();
 
             await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
@@ -204,6 +203,16 @@ public sealed class RunnersManager : IRunnersManager
         await _dotnetNuGetUtil.Push(nuGetPackagePath, source: "https://nuget.pkg.github.com/soenneker/index.json", apiKey: gitHubToken,
                                   cancellationToken: cancellationToken)
                               .NoSync();
+    }
+
+    private static string GetCommitMessage(string libraryName, string resource, string sourcePath, string hash, string? updateDetails)
+    {
+        if (string.IsNullOrWhiteSpace(updateDetails) && File.Exists(sourcePath) &&
+            Path.GetExtension(sourcePath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
+            updateDetails = System.Diagnostics.FileVersionInfo.GetVersionInfo(sourcePath).ProductVersion;
+
+        string details = string.IsNullOrWhiteSpace(updateDetails) ? $"SHA256 {hash}" : updateDetails.Replace('\r', ' ').Replace('\n', ' ').Trim();
+        return $"Update {libraryName} ({details})\n\nResource: {resource}\nContent SHA256: {hash}";
     }
 
     private static string GetPathWithin(string rootDirectory, string path, string description)
