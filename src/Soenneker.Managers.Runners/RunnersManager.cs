@@ -76,7 +76,7 @@ public sealed class RunnersManager : IRunnersManager
                            .NoSync();
 
             await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken,
-                                cancellationToken, GetCommitMessage(libraryName, fileName, filePath, newHash, updateDetails))
+                                cancellationToken)
                             .NoSync();
         }
         finally
@@ -121,7 +121,7 @@ public sealed class RunnersManager : IRunnersManager
                                  .NoSync();
 
             await _hashSaver.SaveHashToGitRepoAsFile(gitDirectory, libraryName, newHash, fileName, _hashFilename, gitName, gitEmail, ghUsername,
-                                gitHubToken, cancellationToken, GetCommitMessage(libraryName, fileName, filePath, newHash, updateDetails))
+                                gitHubToken, cancellationToken)
                             .NoSync();
 
             await CreateGitHubRelease(filePath, libraryName, version, ghUsername, cancellationToken)
@@ -177,7 +177,7 @@ public sealed class RunnersManager : IRunnersManager
                                  .NoSync();
 
             await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
-                                cancellationToken, GetCommitMessage(libraryName, resourcesRelativeDir, sourceDir, newHash, updateDetails))
+                                cancellationToken)
                             .NoSync();
 
             await PublishToGitHubPackages(gitDirectory, libraryName, version, gitHubToken, cancellationToken)
@@ -203,16 +203,6 @@ public sealed class RunnersManager : IRunnersManager
         await _dotnetNuGetUtil.Push(nuGetPackagePath, source: "https://nuget.pkg.github.com/soenneker/index.json", apiKey: gitHubToken,
                                   cancellationToken: cancellationToken)
                               .NoSync();
-    }
-
-    private static string GetCommitMessage(string libraryName, string resource, string sourcePath, string hash, string? updateDetails)
-    {
-        if (string.IsNullOrWhiteSpace(updateDetails) && File.Exists(sourcePath) &&
-            Path.GetExtension(sourcePath).Equals(".exe", StringComparison.OrdinalIgnoreCase))
-            updateDetails = System.Diagnostics.FileVersionInfo.GetVersionInfo(sourcePath).ProductVersion;
-
-        string details = string.IsNullOrWhiteSpace(updateDetails) ? $"SHA256 {hash}" : updateDetails.Replace('\r', ' ').Replace('\n', ' ').Trim();
-        return $"Update {libraryName} ({details})\n\nResource: {resource}\nContent SHA256: {hash}";
     }
 
     private static string GetPathWithin(string rootDirectory, string path, string description)
