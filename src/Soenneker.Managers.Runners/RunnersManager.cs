@@ -168,7 +168,6 @@ public sealed class RunnersManager : IRunnersManager
 
             string gitName = EnvironmentUtil.GetVariableStrict("GIT__NAME");
             string gitEmail = EnvironmentUtil.GetVariableStrict("GIT__EMAIL");
-            string ghUsername = EnvironmentUtil.GetVariableStrict("GH__USERNAME");
             string nuGetToken = EnvironmentUtil.GetVariableStrict("NUGET__TOKEN");
             string version = EnvironmentUtil.GetVariableStrict("BUILD_VERSION");
             string gitHubToken = EnvironmentUtil.GetVariableStrict("GH__TOKEN");
@@ -176,7 +175,7 @@ public sealed class RunnersManager : IRunnersManager
             await _packageManager.BuildPackAndPushDirectory(gitDirectory, libraryName, targetDir, sourceDir, version, nuGetToken, cancellationToken)
                                  .NoSync();
 
-            await _hashSaver.SaveHashToGitRepoAsDirectory(gitDirectory, newHash, targetDir, _hashFilename, gitName, gitEmail, ghUsername, gitHubToken,
+            await _hashSaver.SaveHashToGitRepoWithoutClearingResources(gitDirectory, newHash, _hashFilename, gitName, gitEmail, gitHubToken,
                                 cancellationToken, updateDetails)
                             .NoSync();
 
