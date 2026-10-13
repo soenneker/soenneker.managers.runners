@@ -49,7 +49,7 @@
         <PackageReference Include="Soenneker.Managers.HashChecking" Version="4.0.881" />
         <PackageReference Include="Soenneker.Managers.HashSaving" Version="4.0.1356" PrivateAssets="analyzers;build" />
         <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="4.0.1346" />
-        <PackageReference Include="Soenneker.Utils.Environment" Version="4.0.767" />
+        <PackageReference Include="Soenneker.Utils.Environment" Version="4.0.770" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.126" />
