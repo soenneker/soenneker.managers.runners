@@ -47,8 +47,8 @@
     <ItemGroup>
         <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="11.0.1126" />
         <PackageReference Include="Soenneker.Managers.HashChecking" Version="11.0.909" />
-        <PackageReference Include="Soenneker.Managers.HashSaving" Version="11.0.1390" PrivateAssets="analyzers;build" />
-        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="11.0.1379" />
+        <PackageReference Include="Soenneker.Managers.HashSaving" Version="11.0.1391" PrivateAssets="analyzers;build" />
+        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="11.0.1380" />
         <PackageReference Include="Soenneker.Utils.Environment" Version="11.0.791" />
     </ItemGroup>
     <ItemGroup>
