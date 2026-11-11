@@ -45,11 +45,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="11.0.1140" />
-        <PackageReference Include="Soenneker.Managers.HashChecking" Version="11.0.910" />
+        <PackageReference Include="Soenneker.GitHub.Repositories.Releases" Version="11.0.1142" />
+        <PackageReference Include="Soenneker.Managers.HashChecking" Version="11.0.914" />
         <PackageReference Include="Soenneker.Managers.HashSaving" Version="11.0.1397" PrivateAssets="analyzers;build" />
-        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="11.0.1383" />
-        <PackageReference Include="Soenneker.Utils.Environment" Version="11.0.794" />
+        <PackageReference Include="Soenneker.Managers.NuGetPackage" Version="11.0.1384" />
+        <PackageReference Include="Soenneker.Utils.Environment" Version="11.0.796" />
     </ItemGroup>
     <ItemGroup>
     </ItemGroup>
